@@ -1,0 +1,53 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Quick Commerce Fulfillment & Order API",
+    "version": "1.0.0",
+    "description": "API specification for instant dark store order dispatch and webhook security."
+  },
+  "paths": {
+    "/api/v1/orders": {
+      "post": {
+        "summary": "Place instant quick commerce order",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer_id": { "type": "string" },
+                  "dark_store_id": { "type": "string" },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "sku_id": { "type": "string" },
+                        "quantity": { "type": "integer" }
+                      }
+                    }
+                  },
+                  "total_amount_in_paise": { "type": "integer" },
+                  "payment_gateway_ref": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Order successfully placed and routed to dark store picker." },
+          "200": { "description": "Duplicate idempotent request replayed." }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Commerce Checkout</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; padding: 40px; }
+        .card { background: white; padding: 25px; border-radius: 8px; max-width: 400px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-top: 0; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #ff4757; color: white; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 4px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #e84118; }
+        #result { margin-top: 15px; background: #f1f2f6; padding: 10px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>⚡ Quick Commerce Checkout</h2>
+    <label>Customer ID:</label>
+    <input type="text" id="customerId" value="cust_99823">
+
+    <label>Dark Store ID:</label>
+    <input type="text" id="darkStoreId" value="ds_koramangala_04">
+
+    <label>Item:</label>
+    <select id="skuId">
+        <option value="milk_amul_500ml">Amul Milk 500ml (₹35)</option>
+        <option value="bread_brown_400g">Brown Bread 400g (₹45)</option>
+    </select>
+
+    <label>Quantity:</label>
+    <input type="number" id="quantity" value="2">
+
+    <button onclick="placeOrder()">Place Order (10-Min Delivery)</button>
+
+    <div id="result">Response will appear here...</div>
+</div>
+
+<script>
+async function placeOrder() {
+    const customerId = document.getElementById('customerId').value;
+    const darkStoreId = document.getElementById('darkStoreId').value;
+    const skuId = document.getElementById('skuId').value;
+    const quantity = parseInt(document.getElementById('quantity').value);
+    
+    const amount = skuId === 'milk_amul_500ml' ? quantity * 3500 : quantity * 4500;
+    const idempotencyKey = 'idempotency_' + Math.random().toString(36).substring(7);
+
+    const payload = {
+        customer_id: customerId,
+        dark_store_id: darkStoreId,
+        items: [{ sku_id: skuId, quantity: quantity }],
+        total_amount_in_paise: amount,
+        payment_gateway_ref: "pay_ref_" + Math.floor(Math.random() * 100000)
+    };
+
+    try {
+        const response = await fetch('http://127.0.0.1:5000/api/v1/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Idempotency-Key': idempotencyKey
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+    } catch (error) {
+        document.getElementById('result').innerText = "Error: " + error.message;
+    }
+}
+</script>
+
+</body>
+</html>
